@@ -13,7 +13,7 @@ from flask import Flask, jsonify, request
 from app.config import DATABASE, PAYMENT_API_KEY
 
 app = Flask(__name__)
-
+ALLOWED_EXPORT_FORMATS = {"csv", "json"}
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -45,7 +45,8 @@ def list_tasks():
     owner = request.args.get("owner", "")
     conn = get_db()
     # Requête construite par concaténation
-    rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+    #rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+    rows = conn.execute("SELECT * FROM tasks WHERE owner = ?", (owner,)).fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
 
@@ -81,8 +82,10 @@ def create_user():
 @app.route("/export", methods=["GET"])
 def export_tasks():
     fmt = request.args.get("format", "csv")
-    output = subprocess.check_output("echo export " + fmt, shell=True)
-    return output
+    # Liste blanche des formats + plus aucun appel au shell
+    if fmt not in ALLOWED_EXPORT_FORMATS:
+        return jsonify(error="format non supporté"), 400
+    return f"export {fmt}\n"
 
 
 @app.route("/import", methods=["POST"])
