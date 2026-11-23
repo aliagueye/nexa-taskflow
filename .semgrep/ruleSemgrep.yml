@@ -1,0 +1,11 @@
+rules:
+  - id: taskflow-sql-concatenation
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Requête SQL construite par concaténation : risque d'injection SQL.
+      Utiliser une requête paramétrée : conn.execute("... WHERE owner = ?", (owner,))
+    pattern-either:
+      - pattern: $CONN.execute("..." + $X + "...", ...)
+      - pattern: $CONN.execute("..." + $X, ...)
+      - pattern: $CONN.execute(f"...", ...)
