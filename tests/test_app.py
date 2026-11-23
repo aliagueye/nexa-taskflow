@@ -15,7 +15,7 @@ def client(tmp_path, monkeypatch):
 def test_health(client):
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.get_json() == {"status": "oK"}
+    assert resp.get_json() == {"status": "ok"}
 
 
 def test_create_and_list_tasks(client):
