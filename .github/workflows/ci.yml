@@ -48,7 +48,7 @@ jobs:
           semgrep scan \
             --config p/default \
             --config p/python \
-            --config .semgrep/taskflow-sql-injection.yml \
+            --config .semgrep/ \
             --severity ERROR \
             --error \
             app/
