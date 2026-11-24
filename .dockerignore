@@ -1,0 +1,25 @@
+# Historique Git (contient d'anciens secrets) et configuration CI
+.git
+.github
+.gitignore
+.gitleaksignore
+.semgrep
+
+# Environnements et fichiers locaux
+.venv
+__pycache__
+*.pyc
+*.db
+.env
+.env.*
+
+# Hors application : tests, documentation, infrastructure, rapports de scan
+tests
+docs
+infra
+k8s
+charts
+audit
+trivy-*
+gitleaks-*
+semgrep-*
