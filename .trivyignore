@@ -1,0 +1,61 @@
+# Exceptions Trivy — TaskFlow (voir SECURITY.md § 5)
+# Règles : une CVE par ligne, justification, responsable, expiration de 90 jours maximum.
+# Contexte commun : CVE des paquets Debian 13 de l'image de base python:3.12-slim,
+# SANS correctif publié au 2026-11-24 (non bloquantes grâce à --ignore-unfixed).
+# Conteneur exécuté en utilisateur non-root (UID 10001), sans shell de connexion.
+# Responsable de toutes les exceptions : Alioune Gueye, ajoutées le 2026-11-24.
+#
+# Expiration à 30 jours : composants chargés par l'application (risque atteignable).
+# Expiration à 90 jours : composants présents dans l'image mais jamais appelés par l'application.
+
+
+# ---------- Composants utilisés par l'application : expiration à 30 jours ----------
+
+# CVE-2026-119373, CVE-2026-119374, CVE-2026-119379 — libsqlite3-0 3.46.1-7+deb13u2
+# Justification : SQLite est utilisé par l'application (module sqlite3), le composant est donc
+# atteignable. Risque réduit : toutes les requêtes sont paramétrées (l'utilisateur ne contrôle
+# jamais le texte SQL) et le contrôle est assuré par la règle Semgrep maison. Exception courte,
+# à revoir dès la publication d'un correctif Debian.
+CVE-2026-119373 exp:2026-12-24
+CVE-2026-119374 exp:2026-12-24
+CVE-2026-119379 exp:2026-12-24
+
+# CVE-2026-107494, CVE-2026-124709 — libssl3t64, openssl, openssl-provider-legacy 3.5.9-1~deb13u1
+# Justification : la bibliothèque est chargée par Python, mais l'application n'établit aucune
+# connexion TLS (requests n'est pas utilisé) et sert du HTTP simple ; le TLS est terminé en amont,
+# par le Load Balancer ou l'Ingress. Exposition faible mais présente : exception courte.
+CVE-2026-107494 exp:2026-12-24
+CVE-2026-124709 exp:2026-12-24
+
+
+# ---------- Composants non utilisés par l'application : expiration à 90 jours ----------
+
+# CVE-2026-76642, CVE-2026-78408, CVE-2026-78409, CVE-2026-78410 — util-linux 2.41.5
+# (bsdutils, libblkid1, liblastlog2-2, libmount1, libsmartcols1, libuuid1, login, mount, util-linux)
+# Justification : outils système (montage, connexion, partitions) jamais appelés par l'application.
+# Le conteneur tourne en non-root, sans shell de connexion : impossible de monter un système
+# de fichiers ou d'ouvrir une session.
+CVE-2026-76642 exp:2027-02-22
+CVE-2026-78408 exp:2027-02-22
+CVE-2026-78409 exp:2027-02-22
+CVE-2026-78410 exp:2027-02-22
+
+# CVE-2026-16742 — libsystemd0, libudev1 257.13-1~deb13u1
+# Justification : aucun systemd ni udev ne tourne dans le conteneur. Bibliothèques présentes
+# uniquement comme dépendances de paquets de base.
+CVE-2026-16742 exp:2027-02-22
+
+# CVE-2025-69720 — ncurses (libncursesw6, libtinfo6, ncurses-base, ncurses-bin) 6.5
+# Justification : bibliothèque d'affichage en terminal ; l'application est une API HTTP sans
+# terminal interactif.
+CVE-2025-69720 exp:2027-02-22
+
+# CVE-2026-54369 — libacl1 2.3.2-2+b1
+# Justification : gestion des listes de contrôle d'accès (ACL) des fichiers, utilisée par les
+# outils système ; l'application ne manipule aucune ACL.
+CVE-2026-54369 exp:2027-02-22
+
+# CVE-2026-9538 — perl-base 5.40.1-6+deb13u1
+# Justification : interpréteur Perl requis par les scripts de maintenance Debian (dpkg),
+# jamais exécuté par l'application.
+CVE-2026-9538 exp:2027-02-22
