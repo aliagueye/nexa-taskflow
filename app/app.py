@@ -90,7 +90,9 @@ def export_tasks():
 
 @app.route("/import", methods=["POST"])
 def import_tasks():
-    tasks = pickle.loads(request.data)
+    tasks = request.get_json(silent=True)
+    if not isinstance(tasks, list):
+        return jsonify(error="une liste JSON de tâches est attendue"), 400
     return jsonify(imported=len(tasks))
 
 
