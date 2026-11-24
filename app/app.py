@@ -44,9 +44,9 @@ def health():
 def list_tasks():
     owner = request.args.get("owner", "")
     conn = get_db()
-    # Requête construite par concaténation
-    #rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
-    rows = conn.execute("SELECT * FROM tasks WHERE owner = ?", (owner,)).fetchall()
+    # Requête construite par concaténation pour tester le blocage
+    rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+    #rows = conn.execute("SELECT * FROM tasks WHERE owner = ?", (owner,)).fetchall() bonne methode 
     conn.close()
     return jsonify([dict(r) for r in rows])
 
