@@ -1,0 +1,225 @@
+                    
+                    
+┌──────────────────┐
+│ 22 Code Findings │
+└──────────────────┘
+                                           
+  [36m[22m[24m  .github/workflows/ci.yml[0m
+    ❯❱ [1myaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          GitHub Actions step uses a mutable tag or branch reference. Tags and branch names can be silently   
+          repointed by the action owner, enabling supply-chain attacks — as seen in the trivy-action and kics-
+          github-action compromises. Pin the reference to a full 40-character commit SHA instead, e.g. `uses: 
+          actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608`.                                         
+          Details: https://sg.run/2LgAL                                                                       
+                                                                                                              
+           17┆ uses: actions/checkout@v4
+            ⋮┆----------------------------------------
+           20┆ uses: actions/setup-python@v5
+                             
+  [36m[22m[24m  Dockerfile[0m
+   ❯❯❱ [1mdockerfile.security.missing-user.missing-user[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          By not specifying a USER, a program in the container may run as 'root'. This is a security hazard.
+          If an attacker can control a process running as root, they may have control over the container.   
+          Ensure that the last USER in a Dockerfile is a USER other than 'root'.                            
+          Details: https://sg.run/Gbvn                                                                      
+                                                                                                            
+           [32m▶▶┆ Autofix ▶ [0mUSER non-root CMD ["python", "-m", "app.app"]
+            9┆ CMD ["python", "-m", "app.app"]
+                             
+  [36m[22m[24m  app/app.py[0m
+   ❯❯❱ [1mpython.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL
+          Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy      
+          provides TextualSQL to easily used prepared statement with named parameters. For complex SQL        
+          composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy   
+          ORM will be a better option.                                                                        
+          Details: https://sg.run/2b1L                                                                        
+                                                                                                              
+           48┆ rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+   
+   ❯❯❱ [1mpython.django.security.injection.tainted-sql-string.tainted-sql-string[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input used to manually construct a SQL string. This is usually bad practice because 
+          manual construction could accidentally result in a SQL injection. An attacker could use a SQL     
+          injection to steal or modify contents of the database. Instead, use a parameterized query which is
+          available by default in most database engines. Alternatively, consider using the Django object-   
+          relational mappers (ORM) instead of raw SQL queries.                                              
+          Details: https://sg.run/PbZp                                                                      
+                                                                                                            
+           48┆ rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+   
+   ❯❯❱ [1mpython.flask.security.injection.tainted-sql-string.tainted-sql-string[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input used to manually construct a SQL string. This is usually bad practice because 
+          manual construction could accidentally result in a SQL injection. An attacker could use a SQL     
+          injection to steal or modify contents of the database. Instead, use a parameterized query which is
+          available by default in most database engines. Alternatively, consider using an object-relational 
+          mapper (ORM) such as SQLAlchemy which will protect your queries.                                  
+          Details: https://sg.run/JxZj                                                                      
+                                                                                                            
+           48┆ rows = conn.execute("SELECT * FROM tasks WHERE owner = '" + owner + "'").fetchall()
+   
+    ❯❱ [1mpython.lang.security.insecure-hash-algorithms-md5.insecure-hash-algorithm-md5[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected MD5 hash algorithm which is considered insecure. MD5 is not collision resistant and is
+          therefore not suitable as a cryptographic signature. Use SHA256 or SHA3 instead.               
+          Details: https://sg.run/vYrY                                                                   
+                                                                                                         
+           70┆ password_hash = hashlib.md5(data.get("password", "").encode()).hexdigest()
+   
+    ❯❱ [1mpython.lang.security.audit.md5-used-as-password.md5-used-as-password[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          It looks like MD5 is used as a password hash. MD5 is not considered a secure password hash because  
+          it can be cracked by an attacker in a short amount of time. Use a suitable password hashing function
+          such as scrypt. You can use `hashlib.scrypt`.                                                       
+          Details: https://sg.run/5DwD                                                                        
+                                                                                                              
+           70┆ password_hash = hashlib.md5(data.get("password", "").encode()).hexdigest()
+   
+   ❯❯❱ [1mpython.flask.security.injection.subprocess-injection.subprocess-injection[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected user input entering a `subprocess` call unsafely. This could result in a command injection 
+          vulnerability. An attacker could use this vulnerability to execute arbitrary commands on the host,  
+          which allows them to download malware, scan sensitive data, or run any command they wish on the     
+          server. Do not let users choose the command to run. In general, prefer to use Python API versions of
+          system commands. If you must use subprocess, use a dictionary to allowlist a set of commands.       
+          Details: https://sg.run/5gW3                                                                        
+                                                                                                              
+           84┆ output = subprocess.check_output("echo export " + fmt, shell=True)
+   
+   ❯❯❱ [1mpython.lang.security.dangerous-subprocess-use.dangerous-subprocess-use[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected subprocess function 'check_output' with user controlled data. A malicious actor could
+          leverage this to perform command injection. You may consider using 'shlex.escape()'.          
+          Details: https://sg.run/NWxp                                                                  
+                                                                                                        
+           84┆ output = subprocess.check_output("echo export " + fmt, shell=True)
+   
+   ❯❯❱ [1mpython.lang.security.audit.subprocess-shell-true.subprocess-shell-true[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Found 'subprocess' function 'check_output' with 'shell=True'. This is dangerous because this call 
+          will spawn the command using a shell process. Doing so propagates current shell settings and      
+          variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False'
+          instead.                                                                                          
+          Details: https://sg.run/J92w                                                                      
+                                                                                                            
+           [32m▶▶┆ Autofix ▶ [0mFalse
+           84┆ output = subprocess.check_output("echo export " + fmt, shell=True)
+   
+   ❯❯❱ [1mpython.flask.security.insecure-deserialization.insecure-deserialization[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected the use of an insecure deserialization library in a Flask route. These libraries are prone
+          to code execution vulnerabilities. Ensure user data does not enter this function. To fix this, try 
+          to avoid serializing whole objects. Consider instead using a serializer such as JSON.              
+          Details: https://sg.run/N45z                                                                       
+                                                                                                             
+           90┆ tasks = pickle.loads(request.data)
+   
+    ❯❱ [1mpython.lang.security.deserialization.pickle.avoid-pickle[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Avoid using `pickle`, which is known to lead to code execution vulnerabilities. When unpickling, the
+          serialized data could be manipulated to run arbitrary code. Instead, consider serializing the       
+          relevant data as JSON or a similar text-based serialization format.                                 
+          Details: https://sg.run/OPwB                                                                        
+                                                                                                              
+           90┆ tasks = pickle.loads(request.data)
+   
+    ❯❱ [1mpython.flask.security.audit.app-run-param-config.avoid_app_run_with_bad_host[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Running flask app with host 0.0.0.0 could expose the server publicly.
+          Details: https://sg.run/eLby                                         
+                                                                               
+          102┆ app.run(host="0.0.0.0", port=8085, debug=True)
+   
+    ❯❱ [1mpython.flask.security.audit.debug-enabled.debug-enabled[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Detected Flask app with debug=True. Do not deploy to production with this flag enabled as it will   
+          leak sensitive information. Instead, consider using Flask configuration variables or setting 'debug'
+          using system environment variables.                                                                 
+          Details: https://sg.run/dKrd                                                                        
+                                                                                                              
+          102┆ app.run(host="0.0.0.0", port=8085, debug=True)
+                                
+  [36m[22m[24m  infra/main.tf[0m
+    ❯❱ [1mterraform.lang.security.s3-public-read-bucket.s3-public-read-bucket[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          S3 bucket with public read access detected.
+          Details: https://sg.run/WgAy               
+                                                     
+           23┆ acl    = "public-read"
+   
+    ❯❱ [1mterraform.aws.security.aws-db-instance-no-logging.aws-db-instance-no-logging[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Database instance has no logging. Missing logs can cause missing important event information.
+          Details: https://sg.run/GyAp                                                                 
+                                                                                                       
+           67┆ resource "aws_db_instance" "tasks" {
+           68┆   identifier          = "taskflow-db"
+           69┆   engine              = "postgres"
+           70┆   instance_class      = "db.t3.micro"
+           71┆   allocated_storage   = 20
+           72┆   username            = "taskflow"
+           73┆   password            = "ChangeMe123!"
+           74┆   publicly_accessible = true
+           75┆   storage_encrypted   = false
+           76┆   skip_final_snapshot = true
+             [hid 1 additional lines, adjust with --max-lines-per-finding] 
+   
+    ❯❱ [1mterraform.lang.security.rds-insecure-password-storage-in-source-code.rds-insecure-password-storage-in-source-[0m
+  [1m     code[0m                                                                                                         
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          RDS instance or cluster with hardcoded credentials in source code. It is recommended to pass the
+          credentials at runtime, or generate random credentials using the random_password resource.      
+          Details: https://sg.run/x4qA                                                                    
+                                                                                                          
+           73┆ password            = "ChangeMe123!"
+   
+    ❯❱ [1mterraform.lang.security.rds-public-access.rds-public-access[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          RDS instance accessible from the Internet detected.
+          Details: https://sg.run/Oye2                       
+                                                             
+           74┆ publicly_accessible = true
+                                      
+  [36m[22m[24m  k8s/deployment.yaml[0m
+     ❱ [1myaml.kubernetes.security.run-as-non-root.run-as-non-root[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          When running containers in Kubernetes, it's important to ensure that they  are properly secured to  
+          prevent privilege escalation attacks.  One potential vulnerability is when a container is allowed to
+          run  applications as the root user, which could allow an attacker to gain  access to sensitive      
+          resources. To mitigate this risk, it's recommended to  add a `securityContext` to the container,    
+          with the parameter `runAsNonRoot`  set to `true`. This will ensure that the container runs as a non-
+          root user,  limiting the damage that could be caused by any potential attacks. By  adding a         
+          `securityContext` to the container in your Kubernetes pod, you can  help to ensure that your        
+          containerized applications are more secure and  less vulnerable to privilege escalation attacks.    
+          Details: https://sg.run/dgP5                                                                        
+                                                                                                              
+           [32m▶▶┆ Autofix ▶ [0mspec: securityContext: runAsNonRoot: true #
+           16┆ spec:
+   
+    ❯❱ [1myaml.kubernetes.security.allow-privilege-escalation.allow-privilege-escalation[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          In Kubernetes, each pod runs in its own isolated environment with its own set of security policies. 
+          However, certain container images may contain `setuid` or `setgid` binaries that could allow an     
+          attacker to perform privilege escalation and gain access to sensitive resources. To mitigate this   
+          risk, it's recommended to add a `securityContext` to the container in the pod, with the parameter   
+          `allowPrivilegeEscalation` set to `false`. This will prevent the container from running any         
+          privileged processes and limit the impact of any potential attacks. By adding the                   
+          `allowPrivilegeEscalation` parameter to your the `securityContext`, you can help to ensure that your
+          containerized applications are more secure and less vulnerable to privilege escalation attacks.     
+          Details: https://sg.run/ljp6                                                                        
+                                                                                                              
+           [32m▶▶┆ Autofix ▶ [0msecurityContext: allowPrivilegeEscalation: false #
+           22┆ securityContext:
+   
+    ❯❱ [1myaml.kubernetes.security.privileged-container.privileged-container[0m
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Container or pod is running in privileged mode. This grants the container the equivalent of root
+          capabilities on the host machine. This can lead to container escapes, privilege escalation, and 
+          other security concerns. Remove the 'privileged' key to disable this capability.                
+          Details: https://sg.run/Ygr5                                                                    
+                                                                                                          
+           23┆ privileged: true

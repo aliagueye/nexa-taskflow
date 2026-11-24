@@ -1,0 +1,3 @@
+# Secrets révoqués (voir docs/incident-secrets.md) : présents uniquement dans l'historique Git
+a85c838c7b3721cae478659384d4f09b93e462bb:app/config.py:generic-api-key:6
+e9d19246b9cd2ff846b7bb56c4c2a3970799205a:.env:generic-api-key:3
