@@ -26,68 +26,70 @@ jobs:
 
       - name: Lancer les tests
         run: python -m pytest -v
+
   semgrep:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
- 
+
       - name: Installer Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
- 
+
       - name: Installer Semgrep
         run: pip install semgrep
-       - name: Scan SAST (bloquant sur les résultats ERROR)
+
+      - name: Scan SAST (bloquant sur les résultats ERROR)
         # --severity ERROR : seuls les résultats critiques sont remontés
         # --error         : le job échoue (code 1) s'il en reste au moins un
         run: |
           semgrep scan \
             --config p/default \
             --config p/python \
-            --config .semgrep/taskflow-sql-injection.yml \
+            --config .semgrep/ \
             --severity ERROR \
             --error \
             app/
+
   gitleaks:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le code avec tout l'historique
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
- 
+          fetch-depth: 0   # par défaut, seul le dernier commit est récupéré
+
       - name: Installer Gitleaks
         run: |
           wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
           tar -xzf gitleaks_8.24.3_linux_x64.tar.gz gitleaks
- 
+
       - name: Scan des secrets sur tout l'historique (bloquant)
+        # .gitleaksignore est lu automatiquement : seules les exceptions justifiées sont ignorées
         run: ./gitleaks git . --redact -v --exit-code 1
+
   trivy:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
- 
+
       - name: Installer Trivy (dépôt officiel Aqua Security)
         run: |
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update -qq && sudo apt-get install -y -qq trivy
           trivy --version
- 
-      # Seuils de SECURITY.md  : CRITICAL et HIGH avec correctif disponible = bloquant.
+
+      # Seuils de SECURITY.md § 3 : CRITICAL et HIGH avec correctif disponible = bloquant.
       # Les exceptions datées de .trivyignore sont lues automatiquement.
       - name: Scan des dépendances (bloquant)
         run: trivy fs --scanners vuln --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 requirements.txt
- 
+
       - name: Construire l'image
         run: docker build -t taskflow:ci .
- 
+
       - name: Scan de l'image (bloquant)
         run: trivy image --scanners vuln --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 taskflow:ci
-   
-        
-
