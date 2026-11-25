@@ -7,3 +7,5 @@ __pycache__/
 .env
 trivy-*.txt
 trivy-*.json
+checkov-*.txt
+checkov-*.txt
