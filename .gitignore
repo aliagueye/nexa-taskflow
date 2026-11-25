@@ -9,3 +9,7 @@ trivy-*.txt
 trivy-*.json
 checkov-*.txt
 checkov-*.txt
+zap-rapports/
+grype.json
+trivy-sbom.json
+ids-*.txt
