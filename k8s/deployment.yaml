@@ -14,13 +14,34 @@ spec:
       labels:
         app: taskflow
     spec:
+      # TP4 - securityContext du pod : non-root, profil seccomp par défaut
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
-          image: nexa/taskflow:latest
+          image: nexa/taskflow:1.0.0 # TP4 - Image versionnée (au lieu de :latest)
           ports:
             - containerPort: 8085
+          # TP4 - securityContext du conteneur (au lieu de privileged: true)
           securityContext:
-            privileged: true
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          # TP4 - Limites de ressources
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           env:
             - name: TASKFLOW_DB
               value: /data/taskflow.db
