@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 FROM python:3.12-slim
 # Applique les correctifs de sécurité Debian publiés depuis la construction de l'image de base
 RUN apt-get update \
- && apt-get upgrade -y --no-install-recommends \
+ && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
