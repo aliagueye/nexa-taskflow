@@ -72,6 +72,9 @@ jobs:
 
   trivy:
     runs-on: ubuntu-latest
+    env:
+      # Miroir officiel de la base de vulnérabilités (évite les limites de téléchargement)
+      TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4

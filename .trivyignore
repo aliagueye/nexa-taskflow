@@ -59,3 +59,8 @@ CVE-2026-54369 exp:2027-02-22
 # Justification : interpréteur Perl requis par les scripts de maintenance Debian (dpkg),
 # jamais exécuté par l'application.
 CVE-2026-9538 exp:2027-02-22
+# CVE-2026-124851 — libzstd1 1.5.7+dfsg-1 (image de base python:3.12-slim)
+# Justification : correctif annoncé par Debian mais pas encore installable via apt-get upgrade.
+# L'application n'utilise pas zstd directement.
+# Responsable : Alioune Gueye — ajoutée le 2026-11-25. Réévaluation sous 7 jours.
+CVE-2026-124851 exp:2026-12-02
