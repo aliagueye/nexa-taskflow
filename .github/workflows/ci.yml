@@ -96,3 +96,26 @@ jobs:
 
       - name: Scan de l'image (bloquant)
         run: trivy image --scanners vuln --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 taskflow:ci
+  
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer Checkov
+        run: pip install checkov==3.4.10
+
+      - name: Scan Terraform (bloquant)
+        run: checkov -d infra/ --framework terraform --compact --quiet
+
+      - name: Scan Kubernetes (bloquant)
+        run: checkov -d k8s/ --framework kubernetes --compact --quiet
+
+      - name: Scan du chart Helm (bloquant)
+        run: checkov -d charts/taskflow --framework helm --compact --quiet
