@@ -119,3 +119,48 @@ jobs:
 
       - name: Scan du chart Helm (bloquant)
         run: checkov -d charts/taskflow --framework helm --compact --quiet
+
+  dast-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Construire l'image
+        run: docker build -t taskflow:ci .
+
+      - name: Lancer l'application dans le job
+        run: |
+          docker run -d --name taskflow -p 8085:8085 taskflow:ci
+          # Attend que l'API réponde (30 s maximum)
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8085/health && exit 0
+            sleep 1
+          done
+          echo "L'application n'a pas démarré" && docker logs taskflow && exit 1
+
+      - name: Scan DAST (ZAP baseline)
+        # -I : les alertes de niveau WARN ne font pas échouer le job (rapport archivé et analysé)
+        run: |
+          mkdir -p zap && chmod 777 zap
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:8085 -r zap-baseline.html -J zap-baseline.json -I
+
+      - name: Générer le SBOM (Syft, CycloneDX)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
+          syft taskflow:ci -o cyclonedx-json=sbom-taskflow.cdx.json
+
+      - name: Archiver le rapport ZAP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-zap
+          path: zap/
+
+      - name: Archiver le SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom-taskflow.cdx.json
