@@ -2,6 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-taskflow
+  # TP4 étape 5 - Exceptions Checkov justifiées (échéance 2027-02-23)
+  annotations:
+    checkov.io/skip1: CKV_K8S_8=Disponibilite - liveness probe sur /health a ajouter, échéance 2027-02-23
+    checkov.io/skip2: CKV_K8S_9=Disponibilite - readiness probe sur /health a ajouter, échéance 2027-02-23
+    checkov.io/skip3: CKV_K8S_43=Integrite - epinglage par digest une fois l'image publiee dans le registre, échéance 2027-02-23
+    checkov.io/skip4: CKV_K8S_15=Maintenance - tag fixe donc pull IfNotPresent suffisant, échéance 2027-02-23
+    checkov.io/skip5: CKV_K8S_21=Gouvernance - namespace fourni par helm install --namespace, échéance 2027-02-23
+    checkov.io/skip6: CKV_K8S_22=Disponibilite - systeme de fichiers en ecriture tant qu'aucun volume /data n'est monte (base SQLite), échéance 2027-02-23
+    checkov.io/skip7: CKV_K8S_29=Securite - protections appliquees au niveau du conteneur, securityContext de pod a ajouter au template, échéance 2027-02-23
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -12,6 +21,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-taskflow
     spec:
+      # TP4 étape 5 - Secret : pas de jeton d'accès à l'API Kubernetes monté dans le pod
+      automountServiceAccountToken: false
       containers:
         - name: api
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

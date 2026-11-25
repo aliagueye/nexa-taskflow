@@ -1,0 +1,20 @@
+# TP4 étape 5 - Exposition : seul le port de l'API est joignable, aucune sortie réseau
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: taskflow
+  annotations:
+    checkov.io/skip1: CKV_K8S_21=Gouvernance - namespace dedie a creer lors du deploiement, échéance 2027-02-23
+spec:
+  podSelector:
+    matchLabels:
+      app: taskflow
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8085
+  # Aucune règle egress : l'application (SQLite locale) n'a besoin d'aucune connexion sortante
+  egress: []

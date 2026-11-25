@@ -4,6 +4,13 @@ metadata:
   name: taskflow
   labels:
     app: taskflow
+  # TP4 étape 5 - Exceptions Checkov justifiées (échéance 2027-02-23)
+  annotations:
+    checkov.io/skip1: CKV_K8S_8=Disponibilite - liveness probe sur /health a ajouter, échéance 2027-02-23
+    checkov.io/skip2: CKV_K8S_9=Disponibilite - readiness probe sur /health a ajouter, échéance 2027-02-23
+    checkov.io/skip3: CKV_K8S_43=Integrite - epinglage par digest une fois l'image publiee dans le registre, échéance 2027-02-23
+    checkov.io/skip4: CKV_K8S_15=Maintenance - tag fixe 1.0.0 donc pull IfNotPresent suffisant, échéance 2027-02-23
+    checkov.io/skip5: CKV_K8S_21=Gouvernance - namespace dedie a creer lors du deploiement, échéance 2027-02-23
 spec:
   replicas: 2
   selector:
@@ -14,6 +21,8 @@ spec:
       labels:
         app: taskflow
     spec:
+      # TP4 étape 5 - Secret : pas de jeton d'accès à l'API Kubernetes monté dans le pod
+      automountServiceAccountToken: false
       # TP4 - securityContext du pod : non-root, profil seccomp par défaut
       securityContext:
         runAsNonRoot: true
