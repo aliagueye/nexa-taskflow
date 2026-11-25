@@ -2,14 +2,30 @@ replicaCount: 2
 
 image:
   repository: nexa/taskflow
-  tag: latest
+  tag: "1.0.0" # TP4 - Image versionnée (au lieu de latest)
 
 service:
   type: LoadBalancer
   port: 80
 
+# TP4 - securityContext du conteneur : non-root, sans escalade ni privilèges
 securityContext:
-  runAsUser: 0
-  allowPrivilegeEscalation: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  allowPrivilegeEscalation: false
+  # Reste à false : le chart ne monte aucun volume pour /data, la base SQLite
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: RuntimeDefault
 
-resources: {}
+# TP4 - Limites de ressources
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
